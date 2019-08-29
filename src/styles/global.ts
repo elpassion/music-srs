@@ -17,6 +17,7 @@ export const GlobalStyles = createGlobalStyle`
 
   body {
     color: white;
+    background: #303030;
   }
 
   html,
@@ -28,7 +29,6 @@ export const GlobalStyles = createGlobalStyle`
 `;
 
 export const AppContainer = styled.div`
-  background: #222222;
   height: 100%;
 `;
 
@@ -36,5 +36,4 @@ export const Flex = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #303030;
 `;
