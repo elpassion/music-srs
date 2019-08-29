@@ -9,6 +9,7 @@ export interface MidiResult {
   event: number;
   note: number;
   velocity: number;
+  timestamp: number;
   action: "press" | "release";
 }
 
@@ -47,6 +48,7 @@ export const useMidi = (callback: (result: MidiResult) => void) => {
       const event = data[0] & 0xf0;
       const note = data[1];
       const velocity = data[2];
+      const timestamp = Date.now() / 1000; // in seconds
 
       if ([144, 128].includes(event)) {
         // only listen to noteOn and noteOff events
@@ -58,6 +60,7 @@ export const useMidi = (callback: (result: MidiResult) => void) => {
           type: srcElement.type,
           event,
           action: velocity > 0 ? "press" : "release",
+          timestamp,
           note,
           velocity
         };

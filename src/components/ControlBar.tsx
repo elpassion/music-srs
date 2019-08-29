@@ -1,37 +1,22 @@
-import React from "react";
 import styled from "styled-components";
 
-const Container = styled.div`
+export const ControlBar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 28px 32px;
 `;
 
-const Button = styled.button`
-  background: white;
+export const ControlButton = styled.button<{ success?: boolean }>`
+  cursor: pointer;
+  background: ${props => (props.success ? "#6cc32f" : "white")};
   border-radius: 6px;
   border: none;
-  color: black;
+  color: ${props => (props.success ? "white" : "black")};
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
+  margin: 0 10px;
 `;
-
-export const ControlBar = ({
-  showLabels,
-  toggleLabels
-}: {
-  showLabels: boolean;
-  toggleLabels: Function;
-}) => {
-  return (
-    <Container>
-      <Button onClick={() => toggleLabels()}>
-        {showLabels ? "Hide" : "Show"} Keys Names
-      </Button>
-    </Container>
-  );
-};

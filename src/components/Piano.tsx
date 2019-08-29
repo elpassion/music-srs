@@ -1,7 +1,7 @@
 import { range, without } from "lodash";
 import React, { useState } from "react";
 import styled from "styled-components";
-import { useMidi } from "../hooks/useMidi";
+import { useMidi, MidiResult } from "../hooks/useMidi";
 import { midiToNoteName } from "../helpers/midiToNoteName";
 import { ControlBar } from "./ControlBar";
 
@@ -88,11 +88,16 @@ const BlackKey = styled.div<PressableKey>`
   }
 `;
 
-export const Piano: React.FC = () => {
+interface Props {
+  onNote: (result: MidiResult) => void;
+  showLabels: boolean;
+}
+
+export const Piano: React.FC<Props> = ({ onNote, showLabels }) => {
   const [activeKeys, setActiveKeys] = useState<number[]>([]);
-  const [showLabels, setShowLabels] = useState<boolean>(true);
 
   useMidi(result => {
+    onNote && onNote(result);
     if (result.action === "press") {
       setActiveKeys(keys => [...keys, result.note]);
     } else {
@@ -104,29 +109,23 @@ export const Piano: React.FC = () => {
   const blackMidiKeys = [1, 3, 6, 8, 10];
 
   return (
-    <>
-      <KeyboardContainer>
-        {midiKeys.map(keyId => {
-          const isPressed = !!activeKeys.includes(keyId);
-          const Key = blackMidiKeys.includes(keyId % 12) ? BlackKey : WhiteKey;
+    <KeyboardContainer>
+      {midiKeys.map(keyId => {
+        const isPressed = !!activeKeys.includes(keyId);
+        const Key = blackMidiKeys.includes(keyId % 12) ? BlackKey : WhiteKey;
 
-          return (
-            <Box key={keyId}>
-              <Key isPressed={isPressed}>
-                {showLabels && (
-                  <KeyLabel>
-                    {midiToNoteName(keyId, { pitchClass: true, sharps: true })}
-                  </KeyLabel>
-                )}
-              </Key>
-            </Box>
-          );
-        })}
-      </KeyboardContainer>
-      <ControlBar
-        showLabels={showLabels}
-        toggleLabels={() => setShowLabels(s => !s)}
-      />
-    </>
+        return (
+          <Box key={keyId}>
+            <Key isPressed={isPressed}>
+              {showLabels && (
+                <KeyLabel>
+                  {midiToNoteName(keyId, { pitchClass: true, sharps: true })}
+                </KeyLabel>
+              )}
+            </Key>
+          </Box>
+        );
+      })}
+    </KeyboardContainer>
   );
 };

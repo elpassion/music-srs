@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@tonaljs/tonal": "^3.2.2",
+    "@tonejs/midi": "^2.0.7",
     "@types/lodash": "^4.14.138",
     "@types/node": "^12.7.2",
     "@types/react": "^16.9.2",
