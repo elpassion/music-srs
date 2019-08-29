@@ -1,9 +1,9 @@
 import { range, without } from "lodash";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import { useMidi, MidiResult } from "../hooks/useMidi";
 import { midiToNoteName } from "../helpers/midiToNoteName";
-import { ControlBar } from "./ControlBar";
+import { MidiResult, useMidi } from "../hooks/useMidi";
+import { Instrument } from "../Instrument";
 
 export interface PressableKey {
   isPressed?: boolean;
@@ -95,11 +95,26 @@ interface Props {
 
 export const Piano: React.FC<Props> = ({ onNote, showLabels }) => {
   const [activeKeys, setActiveKeys] = useState<number[]>([]);
+  const instrument = useRef<Instrument | null>(null);
+
+  const createInstrument = async () => {
+    if (instrument.current === null) {
+      instrument.current = await Instrument.create("acoustic_grand_piano");
+    }
+  };
+
+  useEffect(() => {
+    createInstrument();
+  }, []);
 
   useMidi(result => {
     onNote && onNote(result);
     if (result.action === "press") {
       setActiveKeys(keys => [...keys, result.note]);
+      if (instrument.current) {
+        console.log(instrument.current.player);
+        instrument.current.player.play(midiToNoteName(result.note));
+      }
     } else {
       setActiveKeys(keys => without(keys, result.note));
     }
