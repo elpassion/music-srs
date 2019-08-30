@@ -110,6 +110,7 @@ function App() {
         )
       ) : (
         <GoogleLogin
+            className="Login__button"
           clientId="992982463904-4f09pjlv8rglfgsgle2640bugqvs29h8.apps.googleusercontent.com"
           buttonText="Login"
           onSuccess={(response: GoogleLoginResponse) => {
