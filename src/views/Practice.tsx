@@ -13,7 +13,7 @@ interface NoteResult extends MidiResult {
 }
 
 interface SequenceComparison {
-  successRate: number,
+  successRate: number;
   missedNotes: number;
   additionalNotes: number;
 }
@@ -41,12 +41,12 @@ const getPlayedSequence = (results: MidiResult[]): NoteResult[] => {
 };
 
 const calculateCorrectnessProcentage = (notes, missed, additonal) => {
-    if(additonal > 0) {
-      return (notes - missed) / (additonal + notes)
-    }else {
-      return (notes - missed) / notes
-    }
-}
+  if (additonal > 0) {
+    return (notes - missed) / (additonal + notes);
+  } else {
+    return (notes - missed) / notes;
+  }
+};
 
 const calculateCorrectness = (
   song: Midi,
@@ -82,7 +82,11 @@ const calculateCorrectness = (
     };
   });
 
-  successRate = calculateCorrectnessProcentage(songNotes.length, missedNotes, additionalNotes)
+  successRate = calculateCorrectnessProcentage(
+    songNotes.length,
+    missedNotes,
+    additionalNotes
+  );
 
   return {
     successRate,
@@ -91,7 +95,7 @@ const calculateCorrectness = (
   };
 };
 
-const animationIds = [];
+let animationId = 0;
 
 export const Practice = React.memo(function Practice() {
   const [loading, setLoading] = useState(true);
@@ -122,38 +126,33 @@ export const Practice = React.memo(function Practice() {
     setIsPlaying(true);
     runAnimation();
 
+    setTimeout(() => {
+      setIsPlaying(false);
+      stopAnimation();
+    }, midiSong.duration * 1000 + 1000);
+
     midiSong.tracks.forEach(track => {
       track.notes.forEach((note, i) => {
         const playTime =
           instrument.current.audioContext.currentTime + note.time;
+
         instrument.current.player.start(note.name, playTime, {
           duration: note.duration,
           gain: note.velocity
         });
-
-        const isLastNote = i === track.notes.length - 1;
-
-        if (isLastNote) {
-          setTimeout(() => {
-            setIsPlaying(false);
-            stopAnimation();
-          }, playTime * 1000);
-        }
       });
     });
   };
 
   const runAnimation = () => {
     const id = window.requestAnimationFrame(runAnimation);
+    animationId = id;
 
     setNotesOffset(prevOffset => prevOffset + 100 / 60);
-    animationIds.push(id);
   };
 
   const stopAnimation = () => {
-    animationIds.forEach(id => {
-      window.cancelAnimationFrame(id);
-    });
+    window.cancelAnimationFrame(animationId);
 
     setNotesOffset(0);
   };
@@ -218,14 +217,27 @@ export const Practice = React.memo(function Practice() {
         </div>
         <h3 className="Practice__h3">
           {playerScore ? (
-              <span className="Practice__h3-wrapper">
-                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
-                  Sucess rate: {(playerScore.successRate * 100).toFixed(2)} %
-                </span>
-                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
-                  (repeat in {playerScore.successRate < 0.5 ? '1 minute' : '1 day'})
-                </span>
+            <span className="Practice__h3-wrapper">
+              <span
+                className={
+                  playerScore.successRate < 0.5
+                    ? "Practice__h3--error"
+                    : "Practice__h3--sucess"
+                }
+              >
+                Sucess rate: {(playerScore.successRate * 100).toFixed(2)} %
               </span>
+              <span
+                className={
+                  playerScore.successRate < 0.5
+                    ? "Practice__h3--error"
+                    : "Practice__h3--sucess"
+                }
+              >
+                (repeat in{" "}
+                {playerScore.successRate < 0.5 ? "1 minute" : "1 day"})
+              </span>
+            </span>
           ) : (
             <span>Played {Math.ceil(playerResults.length / 2)} notes</span>
           )}
