@@ -3,7 +3,7 @@ import { findIndex } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { Piano } from "../components/Piano";
 import { midiToNoteName } from "../helpers/midiToNoteName";
-import { MidiResult } from "../hooks/useMidi";
+import { MidiResult, AudioResult } from "../hooks/useMidi";
 import { Instrument } from "../Instrument";
 import "./Practice.scss";
 
@@ -19,7 +19,7 @@ interface SequenceComparison {
 
 const getPlayedSequence = (results: MidiResult[]): NoteResult[] => {
   const sequence: NoteResult[] = [];
-  const presses: MidiResult[] = [];
+  const presses: AudioResult[] = [];
 
   results.forEach(result => {
     if (result.action === "press") {
@@ -81,13 +81,13 @@ const calculateCorrectness = (
 export const Practice = React.memo(function Practice() {
   const [loading, setLoading] = useState(true);
   const [midiSong, setMidiSong] = useState<Midi | null>(null);
-  const [midiResults, setMidiResults] = useState<MidiResult[]>([]);
+  const [playerResults, setPlayerResults] = useState<AudioResult[]>([]);
   const [showPianoLabels, setShowPianoLabels] = useState<boolean>(true);
   const instrument = useRef<Instrument | null>(null);
 
   const checkResults = () => {
-    const sequence = getPlayedSequence(midiResults);
-    setMidiResults([]);
+    const sequence = getPlayedSequence(playerResults);
+    setPlayerResults([]);
     console.log("compare", midiSong, sequence);
     console.log("compare", calculateCorrectness(midiSong!, sequence));
   };
@@ -132,7 +132,7 @@ export const Practice = React.memo(function Practice() {
       <div className="Practice__screen">
         <div className="Practice__track"></div>
         <h3 className="Practice__h3">
-          Played {Math.ceil(midiResults.length / 2)} notes
+          Played {Math.ceil(playerResults.length / 2)} notes
         </h3>
       </div>
 
@@ -140,7 +140,7 @@ export const Practice = React.memo(function Practice() {
         instrument={instrument.current}
         showLabels={showPianoLabels}
         onNote={result =>
-          setMidiResults(prevResults => [...prevResults, result])
+          setPlayerResults(prevResults => [...prevResults, result])
         }
       />
 

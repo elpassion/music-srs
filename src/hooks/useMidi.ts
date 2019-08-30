@@ -1,16 +1,19 @@
 import React from "react";
 
-export interface MidiResult {
-  name: string;
-  manufacturer: string;
-  state: string;
+export interface AudioResult {
   channel: number;
-  type: string;
-  event: number;
   note: number;
   velocity: number;
   timestamp: number;
   action: "press" | "release";
+}
+
+export interface MidiResult extends AudioResult {
+  name?: string;
+  manufacturer?: string;
+  state?: string;
+  type?: string;
+  event?: number;
 }
 
 export const useMidi = (callback: (result: MidiResult) => void) => {

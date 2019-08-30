@@ -1,27 +1,28 @@
 import { useEffect, useRef } from "react";
+import { AudioResult } from "./useMidi";
 
-export interface KeyboardResult {
-  action: string;
-  note: number;
-}
-
-export interface Event {
-  keyCode: number;
-}
-
-// keyboard keyCode : midi keyCode
+// keyboard key : midi key
 const notes = {
-  65: 69,
-  83: 71,
-  68: 72,
-  70: 74,
-  71: 76,
-  72: 77,
-  74: 79,
-  75: 81
+  a: 60,
+  w: 61,
+  s: 62,
+  e: 63,
+  d: 64,
+  f: 65,
+  t: 66,
+  g: 67,
+  y: 68,
+  h: 69, //hehe
+  u: 70,
+  j: 71,
+  k: 72,
+  o: 73,
+  l: 74,
+  p: 75,
+  ";": 76
 };
 
-export const useKeyboard = (callback: (result: KeyboardResult) => void) => {
+export const useKeyboard = (callback: (result: AudioResult) => void) => {
   const octaveRef = useRef(0);
 
   useEffect(() => {
@@ -29,29 +30,39 @@ export const useKeyboard = (callback: (result: KeyboardResult) => void) => {
     document.addEventListener("keyup", onKeyUp);
   }, []);
 
-    const keyToNote = (key: number) => {
-      return notes[key] + octaveRef.current * 12;
+  const keyToNote = (key: string) => {
+    return notes[key] + octaveRef.current * 12;
   };
 
-  const onKeyDown = (e: Event) => {
-    if (e.keyCode === 219) {
-        octaveRef.current > -4 && octaveRef.current--;
-    } else if (e.keyCode === 221) {
-        octaveRef.current < 3 && octaveRef.current++;
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.repeat) return;
+
+    if (e.key === "[") {
+      octaveRef.current > -4 && octaveRef.current--;
+    } else if (e.key === "]") {
+      octaveRef.current < 3 && octaveRef.current++;
     } else {
+      if (!notes[e.key]) return;
+
       callback({
-          action: "press",
-          note: keyToNote(e.keyCode)
+        action: "press",
+        note: keyToNote(e.key),
+        channel: 0,
+        timestamp: Date.now() / 1000, // in seconds
+        velocity: 0.8
       });
     }
   };
 
-  const onKeyUp = (e: Event) => {
-    if (e.keyCode !== 219 && e.keyCode !== 221) {
-        callback({
-            action: "release",
-            note: keyToNote(e.keyCode)
-        });
+  const onKeyUp = (e: KeyboardEvent) => {
+    if (notes[e.key]) {
+      callback({
+        action: "release",
+        note: keyToNote(e.key),
+        channel: 0,
+        timestamp: Date.now() / 1000, // in seconds
+        velocity: 0.8
+      });
     }
   };
 };

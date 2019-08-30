@@ -1,13 +1,13 @@
 import { range, without } from "lodash";
 import React, { useState } from "react";
 import { midiToNoteName } from "../helpers/midiToNoteName";
-import { MidiResult, useMidi } from "../hooks/useMidi";
 import { useKeyboard } from "../hooks/useKeyboard";
+import { AudioResult, useMidi } from "../hooks/useMidi";
 import { Instrument } from "../Instrument";
 import "./Piano.scss";
 
 interface Props {
-  onNote: (result: MidiResult) => void;
+  onNote: (result: AudioResult) => void;
   showLabels: boolean;
   instrument: Instrument;
 }
@@ -36,6 +36,8 @@ export const Piano: React.FC<Props> = ({ onNote, showLabels, instrument }) => {
     } else {
       setActiveKeys(keys => without(keys, result.note));
     }
+
+    onNote && onNote(result);
   });
 
   return (
