@@ -13,6 +13,7 @@ interface NoteResult extends MidiResult {
 }
 
 interface SequenceComparison {
+  successRate: number,
   missedNotes: number;
   additionalNotes: number;
 }
@@ -39,11 +40,20 @@ const getPlayedSequence = (results: MidiResult[]): NoteResult[] => {
   return sequence;
 };
 
+const calculateCorrectnessProcentage = (notes, missed, additonal) => {
+    if(additonal > 0) {
+      return (notes - missed) / (additonal + notes)
+    }else {
+      return (notes - missed) / notes
+    }
+}
+
 const calculateCorrectness = (
   song: Midi,
   sequence: NoteResult[]
 ): SequenceComparison => {
   const songNotes = song.tracks[0].notes; // add support for different tracks
+  let successRate = 0;
   let missedNotes = 0;
   const additionalNotes = sequence.length - songNotes.length;
   const songTimeOffset = songNotes[0].time; // timestamp offset for song notes (Time to first note);
@@ -72,7 +82,10 @@ const calculateCorrectness = (
     };
   });
 
+  successRate = calculateCorrectnessProcentage(songNotes.length, missedNotes, additionalNotes)
+
   return {
+    successRate,
     missedNotes,
     additionalNotes
   };
@@ -205,28 +218,14 @@ export const Practice = React.memo(function Practice() {
         </div>
         <h3 className="Practice__h3">
           {playerScore ? (
-            <span className="Practice__h3-wrapper">
-              <span
-                className={
-                  playerScore.missedNotes > 0
-                    ? "Practice__h3--error"
-                    : "Practice__h3--sucess"
-                }
-              >
-                Missed notes: {playerScore.missedNotes}
-                {playerScore.missedNotes > 0 ? "😔" : "🎉"}
+              <span className="Practice__h3-wrapper">
+                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
+                  Sucess rate: {(playerScore.successRate * 100).toFixed(2)} %
+                </span>
+                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
+                  (repeat in {playerScore.successRate < 0.5 ? '1 minute' : '1 day'})
+                </span>
               </span>
-              <span
-                className={
-                  playerScore.additionalNotes !== 0
-                    ? "Practice__h3--error"
-                    : "Practice__h3--sucess"
-                }
-              >
-                Additional notes: {playerScore.additionalNotes}
-                {playerScore.additionalNotes !== 0 ? "😔" : "🎉"}
-              </span>
-            </span>
           ) : (
             <span>Played {Math.ceil(playerResults.length / 2)} notes</span>
           )}
