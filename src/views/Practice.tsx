@@ -169,22 +169,12 @@ export const Practice = React.memo(function Practice() {
         <h3 className="Practice__h3">
           {playerScore ? (
               <span className="Practice__h3-wrapper">
-                <spanclassName={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
+                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
                   Sucess rate: {(playerScore.successRate * 100).toFixed(2)} %
                 </span>
                 <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
                   (repeat in {playerScore.successRate < 0.5 ? '1 minute' : '1 day'})
                 </span>
-                {/*<span className={playerScore.missedNotes > 0 ? "Practice__h3--error" : "Practice__h3--sucess"
-                }>*/}
-                    {/*Missed notes: {playerScore.missedNotes}*/}
-                    {/*{playerScore.missedNotes > 0 ? "😔" : "🎉"}*/}
-                  {/*</span>*/}
-                {/*<span className={playerScore.additionalNotes !== 0 ? "Practice__h3--error" : "Practice__h3--sucess"
-                }>*/}
-                    {/*Additional notes: {playerScore.additionalNotes}*/}
-                    {/*{playerScore.additionalNotes !== 0 ? "😔" : "🎉"}*/}
-                {/*</span>*/}
               </span>
           ) : (
             <span>Played {Math.ceil(playerResults.length / 2)} notes</span>
