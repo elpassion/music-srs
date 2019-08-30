@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { midiToNoteName } from "../helpers/midiToNoteName";
 import { MidiResult, useMidi } from "../hooks/useMidi";
+import { useKeyboard } from "../hooks/useKeyboard";
 import { Instrument } from "../Instrument";
 
 export interface PressableKey {
@@ -94,8 +95,8 @@ interface Props {
 }
 
 export const Piano: React.FC<Props> = ({ onNote, showLabels }) => {
-  const [activeKeys, setActiveKeys] = useState<number[]>([]);
-  const instrument = useRef<Instrument | null>(null);
+    const [activeKeys, setActiveKeys] = useState<number[]>([]);
+    const instrument = useRef<Instrument | null>(null);
 
   const createInstrument = async () => {
     if (instrument.current === null) {
@@ -118,6 +119,18 @@ export const Piano: React.FC<Props> = ({ onNote, showLabels }) => {
     } else {
       setActiveKeys(keys => without(keys, result.note));
     }
+  });
+
+  useKeyboard((result) => {
+      if (result.action === "press") {
+          setActiveKeys(keys => [...keys, result.note]);
+          if (instrument.current) {
+              console.log(instrument.current.player);
+              instrument.current.player.play(midiToNoteName(result.note));
+          }
+      } else {
+          setActiveKeys(keys => without(keys, result.note));
+      }
   });
 
   const midiKeys = range(21, 108); // range of midi keyboard
