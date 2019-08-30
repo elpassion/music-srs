@@ -78,8 +78,12 @@ const calculateCorrectness = (
   };
 };
 
+const animationIds = [];
+
 export const Practice = React.memo(function Practice() {
   const [loading, setLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [notesOffset, setNotesOffset] = useState(0);
   const [midiSong, setMidiSong] = useState<Midi | null>(null);
   const [playerResults, setPlayerResults] = useState<AudioResult[]>([]);
   const [playerScore, setPlayerScore] = useState();
@@ -102,19 +106,43 @@ export const Practice = React.memo(function Practice() {
 
   const previewAudio = () => {
     if (!instrument.current) return;
+    setIsPlaying(true);
+    runAnimation();
 
     midiSong.tracks.forEach(track => {
-      track.notes.forEach(note => {
-        instrument.current.player.play(
-          note.name,
-          instrument.current.audioContext.currentTime + note.time,
-          {
-            duration: note.duration,
-            gain: note.velocity
-          }
-        );
+      track.notes.forEach((note, i) => {
+        const playTime =
+          instrument.current.audioContext.currentTime + note.time;
+        instrument.current.player.start(note.name, playTime, {
+          duration: note.duration,
+          gain: note.velocity
+        });
+
+        const isLastNote = i === track.notes.length - 1;
+
+        if (isLastNote) {
+          setTimeout(() => {
+            setIsPlaying(false);
+            stopAnimation();
+          }, playTime * 1000);
+        }
       });
     });
+  };
+
+  const runAnimation = () => {
+    const id = window.requestAnimationFrame(runAnimation);
+
+    setNotesOffset(prevOffset => prevOffset + 100 / 60);
+    animationIds.push(id);
+  };
+
+  const stopAnimation = () => {
+    animationIds.forEach(id => {
+      window.cancelAnimationFrame(id);
+    });
+
+    setNotesOffset(0);
   };
 
   useEffect(() => {
@@ -138,7 +166,11 @@ export const Practice = React.memo(function Practice() {
   return (
     <div className="Practice__container">
       <div className="Practice__screen">
-        <div className="Practice__track">
+        <div
+          className={`Practice__track ${
+            isPlaying ? "Practice__track--playing" : ""
+          }`}
+        >
           {pianoKeys.map(({ keyId, isBlack, isLargerWhite }) => {
             const colorClass = isBlack ? "Practice__track-key--black" : "";
             const sizeClass = isLargerWhite
@@ -149,7 +181,25 @@ export const Practice = React.memo(function Practice() {
               <div
                 key={keyId}
                 className={`Practice__track-key ${colorClass} ${sizeClass}`}
-              />
+              >
+                {midiSong.tracks.map(track => {
+                  return track.notes.map(note => {
+                    if (note.midi !== keyId) return;
+                    return (
+                      <div
+                        key={note.name + note.time + note.duration}
+                        className="Practice__track-note"
+                        style={{
+                          height: note.duration * 100,
+                          bottom: note.time * 100 - notesOffset
+                        }}
+                      >
+                        {note.name}
+                      </div>
+                    );
+                  });
+                })}
+              </div>
             );
           })}
         </div>
