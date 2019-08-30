@@ -92,11 +92,32 @@ export const Practice = React.memo(function Practice() {
     console.log("compare", calculateCorrectness(midiSong!, sequence));
   };
 
+  const previewAudio = () => {
+    if (!instrument.current) return;
+
+    midiSong.tracks.forEach(track => {
+      track.notes.forEach(note => {
+        instrument.current.player.play(
+          note.name,
+          instrument.current.audioContext.currentTime + note.time,
+          {
+            duration: note.duration,
+            gain: note.velocity
+          }
+        );
+      });
+    });
+  };
+
   useEffect(() => {
     Promise.all([
-      Midi.fromUrl("/assets/midi/C_minor_pentatonic_scale.mid").then(midi => {
-        setMidiSong(midi);
-        console.log("loaded midi:", midi);
+      fetch("/assets/midi/C_minor_pentatonic_scale.mid").then(async res => {
+        if (res.ok) {
+          const arrayBuffer = await res.arrayBuffer();
+          setMidiSong(new Midi(arrayBuffer));
+        } else {
+          throw new Error(`could not load midi`);
+        }
       }),
       Instrument.create("acoustic_grand_piano").then(loadedInstrument => {
         instrument.current = loadedInstrument;
@@ -109,6 +130,7 @@ export const Practice = React.memo(function Practice() {
   return (
     <div className="Practice__container">
       <div className="Practice__screen">
+        <div className="Practice__track"></div>
         <h3 className="Practice__h3">
           Played {Math.ceil(midiResults.length / 2)} notes
         </h3>
@@ -134,6 +156,9 @@ export const Practice = React.memo(function Practice() {
           onClick={() => checkResults()}
         >
           Check Results
+        </div>
+        <div className="ControlBar__button" onClick={() => previewAudio()}>
+          Play Audio 🔈
         </div>
       </div>
     </div>
