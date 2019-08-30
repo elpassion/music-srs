@@ -1,32 +1,11 @@
 import { Midi } from "@tonejs/midi";
 import { findIndex } from "lodash";
-import React, { useEffect, useState } from "react";
-import styled from "styled-components";
+import React, { useEffect, useRef, useState } from "react";
 import { Piano } from "../components/Piano";
-import { MidiResult } from "../hooks/useMidi";
-import { ControlButton, ControlBar } from "../components/ControlBar";
 import { midiToNoteName } from "../helpers/midiToNoteName";
-
-const PracticeViewContainer = styled.div`
-  height: 100%;
-
-  display: flex;
-  flex-direction: column;
-`;
-
-const PracticeViewScreen = styled.div`
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const H3 = styled.h3`
-  font-size: 80px;
-  color: white;
-  font-weight: 600;
-  line-height: 1.5;
-`;
+import { MidiResult } from "../hooks/useMidi";
+import { Instrument } from "../Instrument";
+import "./Practice.scss";
 
 interface NoteResult extends MidiResult {
   duration: number;
@@ -100,9 +79,11 @@ const calculateCorrectness = (
 };
 
 export const Practice = React.memo(function Practice() {
+  const [loading, setLoading] = useState(true);
   const [midiSong, setMidiSong] = useState<Midi | null>(null);
   const [midiResults, setMidiResults] = useState<MidiResult[]>([]);
   const [showPianoLabels, setShowPianoLabels] = useState<boolean>(true);
+  const instrument = useRef<Instrument | null>(null);
 
   const checkResults = () => {
     const sequence = getPlayedSequence(midiResults);
@@ -112,33 +93,49 @@ export const Practice = React.memo(function Practice() {
   };
 
   useEffect(() => {
-    Midi.fromUrl("/assets/midi/C_minor_pentatonic_scale.mid").then(midi => {
-      setMidiSong(midi);
-      console.log("loaded midi:", midi);
-    });
+    Promise.all([
+      Midi.fromUrl("/assets/midi/C_minor_pentatonic_scale.mid").then(midi => {
+        setMidiSong(midi);
+        console.log("loaded midi:", midi);
+      }),
+      Instrument.create("acoustic_grand_piano").then(loadedInstrument => {
+        instrument.current = loadedInstrument;
+      })
+    ]).then(() => setLoading(false));
   }, []);
 
+  if (loading || !instrument.current) return <>Loading...</>;
+
   return (
-    <PracticeViewContainer>
-      <PracticeViewScreen>
-        <H3>Played {Math.ceil(midiResults.length / 2)} notes</H3>
-      </PracticeViewScreen>
+    <div className="Practice__container">
+      <div className="Practice__screen">
+        <h3 className="Practice__h3">
+          Played {Math.ceil(midiResults.length / 2)} notes
+        </h3>
+      </div>
 
       <Piano
+        instrument={instrument.current}
         showLabels={showPianoLabels}
         onNote={result =>
           setMidiResults(prevResults => [...prevResults, result])
         }
       />
 
-      <ControlBar>
-        <ControlButton onClick={() => setShowPianoLabels(show => !show)}>
+      <div className="ControlBar">
+        <div
+          className="ControlBar__button"
+          onClick={() => setShowPianoLabels(show => !show)}
+        >
           {showPianoLabels ? "Hide" : "Show"} Keys Names
-        </ControlButton>
-        <ControlButton success onClick={() => checkResults()}>
+        </div>
+        <div
+          className="ControlBar__button ControlBar__button--success"
+          onClick={() => checkResults()}
+        >
           Check Results
-        </ControlButton>
-      </ControlBar>
-    </PracticeViewContainer>
+        </div>
+      </div>
+    </div>
   );
 });

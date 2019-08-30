@@ -1,13 +1,12 @@
 import React from "react";
-import { AppContainer, GlobalStyles } from "./styles/global";
 import { Practice } from "./views/Practice";
+import "./styles/global.scss";
 
 function App() {
   return (
-    <AppContainer>
-      <GlobalStyles />
+    <div className="App__container">
       <Practice />
-    </AppContainer>
+    </div>
   );
 }
 
