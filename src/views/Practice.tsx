@@ -7,6 +7,7 @@ import { midiToNoteName } from "../helpers/midiToNoteName";
 import { AudioResult, MidiResult } from "../hooks/useMidi";
 import { Instrument } from "../Instrument";
 import "./Practice.scss";
+import { MidiEntity } from "../App";
 
 interface NoteResult extends MidiResult {
   duration: number;
@@ -97,8 +98,13 @@ const calculateCorrectness = (
 };
 
 const animationIds = [];
-
-export const Practice = React.memo(function Practice() {
+export const Practice = React.memo(function Practice({
+  midi,
+  onPracticeEnd
+}: {
+  midi: MidiEntity;
+  onPracticeEnd: (score: number) => void;
+}) {
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [notesOffset, setNotesOffset] = useState(0);
@@ -113,6 +119,7 @@ export const Practice = React.memo(function Practice() {
     const result = calculateCorrectness(midiSong!, sequence);
     setPlayerResults([]);
     setPlayerScore(result);
+    setTimeout(() => onPracticeEnd(result.successRate), 1000);
     console.log("compare", midiSong, sequence);
     console.log("compare result", result);
   };
@@ -164,7 +171,7 @@ export const Practice = React.memo(function Practice() {
   };
 
   useEffect(() => {
-    setMidiSong(new Midi(toByteArray(midis[0].data)));
+    setMidiSong(new Midi(toByteArray(midi.data)));
     Instrument.create("acoustic_grand_piano")
       .then(loadedInstrument => {
         instrument.current = loadedInstrument;
@@ -183,23 +190,22 @@ export const Practice = React.memo(function Practice() {
             <span className="Practice__h3-wrapper">
               <span
                 className={
-                  playerScore.missedNotes > 0
+                  playerScore.successRate < 0.5
                     ? "Practice__h3--error"
                     : "Practice__h3--sucess"
                 }
               >
-                Missed notes: {playerScore.missedNotes}
-                {playerScore.missedNotes > 0 ? "😔" : "🎉"}
+                Sucess rate: {(playerScore.successRate * 100).toFixed(2)} %
               </span>
               <span
                 className={
-                  playerScore.additionalNotes !== 0
+                  playerScore.successRate < 0.5
                     ? "Practice__h3--error"
                     : "Practice__h3--sucess"
                 }
               >
-                Additional notes: {playerScore.additionalNotes}
-                {playerScore.additionalNotes !== 0 ? "😔" : "🎉"}
+                (repeat in{" "}
+                {playerScore.successRate < 0.5 ? "1 minute" : "1 day"})
               </span>
             </span>
           ) : (

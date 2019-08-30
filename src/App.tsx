@@ -7,35 +7,57 @@ const AuthContext = React.createContext<{ idToken: string | null }>({
   idToken: null
 });
 
-interface Midi {
+export interface MidiEntity {
   id: string;
   data: string;
   userId: string;
-  results: Result[];
+  results: ResultEntity[];
 }
 
-interface Result {
+interface ResultEntity {
   id: number;
   score: number;
   createdAt: string;
   midiId: string;
 }
 
+const url = "https://demo2-spring.herokuapp.com";
+
 function App() {
   const [idToken, setIdToken] = useState<string | null>(null);
-  const [midis, setMidis] = useState<Midi[]>([]);
+  const [midis, setMidis] = useState<MidiEntity[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<any>(null);
-  const [isPracticing, setIsPracticing] = useState(false);
+  const [
+    currentlyPracticedMidiIndex,
+    setCurrentlyPracticedMidiIndex
+  ] = useState<number | null>(null);
 
   const downloadMidis = async () => {
     if (!idToken) return;
-    const response = await fetch("http://localhost:9090/midis", {
+    const response = await fetch(`${url}/midis`, {
       headers: { authorization: idToken }
     });
     if (response.status !== 200) return;
     const midis = await response.json();
     setMidis(midis);
+  };
+
+  const startNextPractice = (score: number) => {
+    fetch(`${url}/midis/${midis[currentlyPracticedMidiIndex].id}/results`, {
+      method: "POST",
+      headers: { authorization: idToken, "content-type": "application/json" },
+      body: JSON.stringify({ score })
+    });
+    if (currentlyPracticedMidiIndex === midis.length - 1) {
+      setCurrentlyPracticedMidiIndex(null);
+    } else {
+      setCurrentlyPracticedMidiIndex(currentlyPracticedMidiIndex + 1);
+    }
+  };
+
+  const startPracticing = () => {
+    setCurrentlyPracticedMidiIndex(0);
   };
 
   useEffect(() => {
@@ -46,7 +68,7 @@ function App() {
     const formData = new FormData();
     formData.append("id", fileName);
     formData.append("file", file);
-    await fetch("http://localhost:9090/midis", {
+    await fetch(`${url}/midis`, {
       method: "POST",
       body: formData,
       headers: { authorization: idToken }
@@ -57,17 +79,23 @@ function App() {
   return (
     <AuthContext.Provider value={{ idToken }}>
       {idToken ? (
-        isPracticing ? (
+        currentlyPracticedMidiIndex !== null ? (
           <div className="App__container">
-            <Practice midis={midis} />
+            <Practice
+              key={currentlyPracticedMidiIndex}
+              midi={midis[currentlyPracticedMidiIndex]}
+              onPracticeEnd={startNextPractice}
+            />
           </div>
         ) : (
           <div>
             <ul>
               {midis.map(midi => (
                 <li>
-                  {midi.id}:{" "}
-                  {midi.results[0] ? midi.results[0].score : "No score"}
+                  {`${midi.id} `}
+                  {midi.results[0]
+                    ? `Last Score: ${midi.results[0].score}`
+                    : "No score"}
                 </li>
               ))}
             </ul>
@@ -77,6 +105,7 @@ function App() {
             />
             <input type="file" onChange={e => setFile(e.target.files[0])} />
             <button onClick={() => uploadMidi()}>UPLOAD</button>
+            <button onClick={startPracticing}>START PRACTICE</button>
           </div>
         )
       ) : (
