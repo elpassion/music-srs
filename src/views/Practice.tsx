@@ -1,9 +1,10 @@
 import { Midi } from "@tonejs/midi";
+import { toByteArray } from "base64-js";
 import { findIndex } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
-import { Piano, pianoKeys } from "../components/Piano";
+import { Piano } from "../components/Piano";
 import { midiToNoteName } from "../helpers/midiToNoteName";
-import { MidiResult, AudioResult } from "../hooks/useMidi";
+import { AudioResult, MidiResult } from "../hooks/useMidi";
 import { Instrument } from "../Instrument";
 import "./Practice.scss";
 
@@ -13,7 +14,7 @@ interface NoteResult extends MidiResult {
 }
 
 interface SequenceComparison {
-  successRate: number,
+  successRate: number;
   missedNotes: number;
   additionalNotes: number;
 }
@@ -41,12 +42,12 @@ const getPlayedSequence = (results: MidiResult[]): NoteResult[] => {
 };
 
 const calculateCorrectnessProcentage = (notes, missed, additonal) => {
-    if(additonal > 0) {
-      return (notes - missed) / (additonal + notes)
-    }else {
-      return (notes - missed) / notes
-    }
-}
+  if (additonal > 0) {
+    return (notes - missed) / (additonal + notes);
+  } else {
+    return (notes - missed) / notes;
+  }
+};
 
 const calculateCorrectness = (
   song: Midi,
@@ -82,7 +83,11 @@ const calculateCorrectness = (
     };
   });
 
-  successRate = calculateCorrectnessProcentage(songNotes.length, missedNotes, additionalNotes)
+  successRate = calculateCorrectnessProcentage(
+    songNotes.length,
+    missedNotes,
+    additionalNotes
+  );
 
   return {
     successRate,
@@ -159,19 +164,12 @@ export const Practice = React.memo(function Practice() {
   };
 
   useEffect(() => {
-    Promise.all([
-      fetch("/assets/midi/C_minor_pentatonic_scale.mid").then(async res => {
-        if (res.ok) {
-          const arrayBuffer = await res.arrayBuffer();
-          setMidiSong(new Midi(arrayBuffer));
-        } else {
-          throw new Error(`could not load midi`);
-        }
-      }),
-      Instrument.create("acoustic_grand_piano").then(loadedInstrument => {
+    setMidiSong(new Midi(toByteArray(midis[0].data)));
+    Instrument.create("acoustic_grand_piano")
+      .then(loadedInstrument => {
         instrument.current = loadedInstrument;
       })
-    ]).then(() => setLoading(false));
+      .then(() => setLoading(false));
   }, []);
 
   if (loading || !instrument.current) return <>Loading...</>;
@@ -179,53 +177,31 @@ export const Practice = React.memo(function Practice() {
   return (
     <div className="Practice__container">
       <div className="Practice__screen">
-        <div
-          className={`Practice__track ${
-            isPlaying ? "Practice__track--playing" : ""
-          }`}
-        >
-          {pianoKeys.map(({ keyId, isBlack, isLargerWhite }) => {
-            const colorClass = isBlack ? "Practice__track-key--black" : "";
-            const sizeClass = isLargerWhite
-              ? "Practice__track-key--larger"
-              : "";
-
-            return (
-              <div
-                key={keyId}
-                className={`Practice__track-key ${colorClass} ${sizeClass}`}
-              >
-                {midiSong.tracks.map(track => {
-                  return track.notes.map(note => {
-                    if (note.midi !== keyId) return;
-                    return (
-                      <div
-                        key={note.name + note.time + note.duration}
-                        className="Practice__track-note"
-                        style={{
-                          height: note.duration * 100,
-                          bottom: note.time * 100 - notesOffset
-                        }}
-                      >
-                        {note.name}
-                      </div>
-                    );
-                  });
-                })}
-              </div>
-            );
-          })}
-        </div>
+        <div className="Practice__track"></div>
         <h3 className="Practice__h3">
           {playerScore ? (
-              <span className="Practice__h3-wrapper">
-                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
-                  Sucess rate: {(playerScore.successRate * 100).toFixed(2)} %
-                </span>
-                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
-                  (repeat in {playerScore.successRate < 0.5 ? '1 minute' : '1 day'})
-                </span>
+            <span className="Practice__h3-wrapper">
+              <span
+                className={
+                  playerScore.missedNotes > 0
+                    ? "Practice__h3--error"
+                    : "Practice__h3--sucess"
+                }
+              >
+                Missed notes: {playerScore.missedNotes}
+                {playerScore.missedNotes > 0 ? "😔" : "🎉"}
               </span>
+              <span
+                className={
+                  playerScore.additionalNotes !== 0
+                    ? "Practice__h3--error"
+                    : "Practice__h3--sucess"
+                }
+              >
+                Additional notes: {playerScore.additionalNotes}
+                {playerScore.additionalNotes !== 0 ? "😔" : "🎉"}
+              </span>
+            </span>
           ) : (
             <span>Played {Math.ceil(playerResults.length / 2)} notes</span>
           )}
