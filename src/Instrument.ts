@@ -1,10 +1,14 @@
 import Soundfont from "soundfont-player";
 
 export class Instrument {
-  constructor(public player: Soundfont.Player) {}
+  constructor(
+    public player: Soundfont.Player,
+    public audioContext: AudioContext
+  ) {}
 
   static async create(name: Soundfont.InstrumentName): Promise<Instrument> {
-    const player = await Soundfont.instrument(new AudioContext() as any, name);
-    return new Instrument(player);
+    const ac = new AudioContext();
+    const player = await Soundfont.instrument(ac as any, name);
+    return new Instrument(player, ac);
   }
 }
