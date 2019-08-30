@@ -1,7 +1,7 @@
 import { Midi } from "@tonejs/midi";
 import { findIndex } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
-import { Piano } from "../components/Piano";
+import { Piano, pianoKeys } from "../components/Piano";
 import { midiToNoteName } from "../helpers/midiToNoteName";
 import { MidiResult, AudioResult } from "../hooks/useMidi";
 import { Instrument } from "../Instrument";
@@ -101,7 +101,7 @@ export const Practice = React.memo(function Practice() {
 
   const checkResults = () => {
     const sequence = getPlayedSequence(playerResults);
-    const result = calculateCorrectness(midiSong!, sequence)
+    const result = calculateCorrectness(midiSong!, sequence);
     setPlayerResults([]);
     setPlayerScore(result);
     console.log("compare", midiSong, sequence);
@@ -109,9 +109,9 @@ export const Practice = React.memo(function Practice() {
   };
 
   const resetResult = () => {
-      setPlayerResults([]);
-      setPlayerScore(null);
-  }
+    setPlayerResults([]);
+    setPlayerScore(null);
+  };
 
   const previewAudio = () => {
     if (!instrument.current) return;
@@ -151,23 +151,39 @@ export const Practice = React.memo(function Practice() {
   return (
     <div className="Practice__container">
       <div className="Practice__screen">
-        <div className="Practice__track"></div>
-          <h3 className="Practice__h3">
+        <div className="Practice__track">
+          {pianoKeys.map(({ keyId, isBlack, isLargerWhite }) => {
+            const colorClass = isBlack ? "Practice__track-key--black" : "";
+            const sizeClass = isLargerWhite
+              ? "Practice__track-key--larger"
+              : "";
+
+            return (
+              <div
+                key={keyId}
+                className={`Practice__track-key ${colorClass} ${sizeClass}`}
+              />
+            );
+          })}
+        </div>
+        <h3 className="Practice__h3">
           {playerScore ? (
               <span className="Practice__h3-wrapper">
-                <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
+                <spanclassName={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
                   Sucess rate: {(playerScore.successRate * 100).toFixed(2)} %
                 </span>
                 <span className={playerScore.successRate < 0.5 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
                   (repeat in {playerScore.successRate < 0.5 ? '1 minute' : '1 day'})
                 </span>
-                {/*<span className={playerScore.missedNotes > 0 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>*/}
+                {/*<span className={playerScore.missedNotes > 0 ? "Practice__h3--error" : "Practice__h3--sucess"
+                }>*/}
                     {/*Missed notes: {playerScore.missedNotes}*/}
-                    {/*{playerScore.missedNotes > 0 ? '😔' : '🎉'}*/}
-                {/*</span>*/}
-                {/*<span className={playerScore.additionalNotes !== 0 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>*/}
+                    {/*{playerScore.missedNotes > 0 ? "😔" : "🎉"}*/}
+                  {/*</span>*/}
+                {/*<span className={playerScore.additionalNotes !== 0 ? "Practice__h3--error" : "Practice__h3--sucess"
+                }>*/}
                     {/*Additional notes: {playerScore.additionalNotes}*/}
-                    {/*{playerScore.additionalNotes !== 0 ? '😔' : '🎉'}*/}
+                    {/*{playerScore.additionalNotes !== 0 ? "😔" : "🎉"}*/}
                 {/*</span>*/}
               </span>
           ) : (
@@ -191,21 +207,21 @@ export const Practice = React.memo(function Practice() {
         >
           {showPianoLabels ? "Hide" : "Show"} Keys Names
         </div>
-          {playerScore ? (
-              <div
-                  className="ControlBar__button ControlBar__button--warning"
-                  onClick={() => resetResult()}
-              >
-                  Reset result
-              </div>
-          ) : (
-              <div
-                  className="ControlBar__button ControlBar__button--success"
-                  onClick={() => checkResults()}
-              >
-                  Check Results
-              </div>
-          )}
+        {playerScore ? (
+          <div
+            className="ControlBar__button ControlBar__button--warning"
+            onClick={() => resetResult()}
+          >
+            Reset result
+          </div>
+        ) : (
+          <div
+            className="ControlBar__button ControlBar__button--success"
+            onClick={() => checkResults()}
+          >
+            Check Results
+          </div>
+        )}
         <div className="ControlBar__button" onClick={() => previewAudio()}>
           Play Audio 🔈
         </div>
