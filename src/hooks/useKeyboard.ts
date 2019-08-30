@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export interface KeyboardResult {
   action: string;
@@ -22,35 +22,36 @@ const notes = {
 };
 
 export const useKeyboard = (callback: (result: KeyboardResult) => void) => {
-  const [octaveOffset, setOctaveOffset] = useState(0);
+  const octaveRef = useRef(0);
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
   }, []);
 
-  const keyToNote = (key: number) => {
-    return notes[key] + octaveOffset * 12;
+    const keyToNote = (key: number) => {
+      return notes[key] + octaveRef.current * 12;
   };
 
   const onKeyDown = (e: Event) => {
     if (e.keyCode === 219) {
-      setOctaveOffset(octaveOffset - 1);
+        octaveRef.current > -4 && octaveRef.current--;
+    } else if (e.keyCode === 221) {
+        octaveRef.current < 3 && octaveRef.current++;
+    } else {
+      callback({
+          action: "press",
+          note: keyToNote(e.keyCode)
+      });
     }
-    if (e.keyCode === 221) {
-      setOctaveOffset(octaveOffset + 1);
-    }
-
-    callback({
-      action: "press",
-      note: keyToNote(e.keyCode)
-    });
   };
 
   const onKeyUp = (e: Event) => {
-    callback({
-      action: "release",
-      note: keyToNote(e.keyCode)
-    });
+    if (e.keyCode !== 219 && e.keyCode !== 221) {
+        callback({
+            action: "release",
+            note: keyToNote(e.keyCode)
+        });
+    }
   };
 };
