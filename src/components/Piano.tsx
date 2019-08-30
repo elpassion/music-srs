@@ -12,8 +12,11 @@ interface Props {
   instrument: Instrument;
 }
 
-const midiKeys = range(21, 108); // range of midi keyboard
-const blackMidiKeys = [1, 3, 6, 8, 10];
+export const pianoKeys = range(21, 108).map((keyId, i) => ({
+  isBlack: [1, 3, 6, 8, 10].includes(keyId % 12),
+  isLargerWhite: i === 0 ? true : [0, 4, 5, 11].includes(keyId % 12),
+  keyId
+}));
 
 export const Piano: React.FC<Props> = ({ onNote, showLabels, instrument }) => {
   const [activeKeys, setActiveKeys] = useState<number[]>([]);
@@ -42,11 +45,9 @@ export const Piano: React.FC<Props> = ({ onNote, showLabels, instrument }) => {
 
   return (
     <div className="Piano__keyboard">
-      {midiKeys.map(keyId => {
+      {pianoKeys.map(({ keyId, isBlack }) => {
         const isPressed = !!activeKeys.includes(keyId);
-        const keyClass = blackMidiKeys.includes(keyId % 12)
-          ? "Piano__black-key"
-          : "Piano__white-key";
+        const keyClass = isBlack ? "Piano__black-key" : "Piano__white-key";
 
         return (
           <div className="box" key={keyId}>

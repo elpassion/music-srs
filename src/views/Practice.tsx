@@ -1,7 +1,7 @@
 import { Midi } from "@tonejs/midi";
 import { findIndex } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
-import { Piano } from "../components/Piano";
+import { Piano, pianoKeys } from "../components/Piano";
 import { midiToNoteName } from "../helpers/midiToNoteName";
 import { MidiResult, AudioResult } from "../hooks/useMidi";
 import { Instrument } from "../Instrument";
@@ -130,7 +130,21 @@ export const Practice = React.memo(function Practice() {
   return (
     <div className="Practice__container">
       <div className="Practice__screen">
-        <div className="Practice__track"></div>
+        <div className="Practice__track">
+          {pianoKeys.map(({ keyId, isBlack, isLargerWhite }) => {
+            const colorClass = isBlack ? "Practice__track-key--black" : "";
+            const sizeClass = isLargerWhite
+              ? "Practice__track-key--larger"
+              : "";
+
+            return (
+              <div
+                key={keyId}
+                className={`Practice__track-key ${colorClass} ${sizeClass}`}
+              />
+            );
+          })}
+        </div>
         <h3 className="Practice__h3">
           Played {Math.ceil(playerResults.length / 2)} notes
         </h3>

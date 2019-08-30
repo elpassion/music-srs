@@ -1,4 +1,4 @@
-$whiteKeyWidth: 75;
+@import "../styles/variables";
 
 .box {
   position: relative;
@@ -22,7 +22,7 @@ $whiteKeyWidth: 75;
     border-radius: 0 0 4px 4px;
     background: white;
     top: 0;
-    margin-right: 4px;
+    margin: 0 #{$whiteKeyMargin / 2}px;
     cursor: pointer;
     transition: all 0.05s ease;
     opacity: 1;
@@ -55,7 +55,7 @@ $whiteKeyWidth: 75;
     flex-shrink: 0;
     top: 0;
     height: 156px;
-    width: 38px;
+    width: #{$blackKeyWidth}px;
     background: #303030;
     transform: translate(calc(-50% - 2px), -3px);
     transition: all 0.05s ease;
