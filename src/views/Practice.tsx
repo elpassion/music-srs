@@ -141,16 +141,16 @@ export const Practice = React.memo(function Practice() {
         <div className="Practice__track"></div>
           <h3 className="Practice__h3">
           {playerScore ? (
-              <>
+              <span className="Practice__h3-wrapper">
                 <span className={playerScore.missedNotes > 0 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
                     Missed notes: {playerScore.missedNotes}
                     {playerScore.missedNotes > 0 ? '😔' : '🎉'}
                   </span>
-                <span className={playerScore.additionalNotes > 0 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
+                <span className={playerScore.additionalNotes !== 0 ? 'Practice__h3--error' : 'Practice__h3--sucess'}>
                     Additional notes: {playerScore.additionalNotes}
-                    {playerScore.additionalNotes > 0 ? '😔' : '🎉'}
+                    {playerScore.additionalNotes !== 0 ? '😔' : '🎉'}
                 </span>
-              </>
+              </span>
           ) : (
             <span>Played {Math.ceil(playerResults.length / 2)} notes</span>
           )}

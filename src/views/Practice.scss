@@ -24,6 +24,11 @@
     left: 50%;
     transform: translate(-50%, -50%);
 
+    &-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
     &--error {
       color: #d32f2f;
     }
