@@ -82,14 +82,22 @@ export const Practice = React.memo(function Practice() {
   const [loading, setLoading] = useState(true);
   const [midiSong, setMidiSong] = useState<Midi | null>(null);
   const [playerResults, setPlayerResults] = useState<AudioResult[]>([]);
+  const [playerScore, setPlayerScore] = useState();
   const [showPianoLabels, setShowPianoLabels] = useState<boolean>(true);
   const instrument = useRef<Instrument | null>(null);
 
   const checkResults = () => {
     const sequence = getPlayedSequence(playerResults);
+    const result = calculateCorrectness(midiSong!, sequence);
     setPlayerResults([]);
+    setPlayerScore(result);
     console.log("compare", midiSong, sequence);
-    console.log("compare", calculateCorrectness(midiSong!, sequence));
+    console.log("compare result", result);
+  };
+
+  const resetResult = () => {
+    setPlayerResults([]);
+    setPlayerScore(null);
   };
 
   const previewAudio = () => {
@@ -146,7 +154,32 @@ export const Practice = React.memo(function Practice() {
           })}
         </div>
         <h3 className="Practice__h3">
-          Played {Math.ceil(playerResults.length / 2)} notes
+          {playerScore ? (
+            <span className="Practice__h3-wrapper">
+              <span
+                className={
+                  playerScore.missedNotes > 0
+                    ? "Practice__h3--error"
+                    : "Practice__h3--sucess"
+                }
+              >
+                Missed notes: {playerScore.missedNotes}
+                {playerScore.missedNotes > 0 ? "😔" : "🎉"}
+              </span>
+              <span
+                className={
+                  playerScore.additionalNotes !== 0
+                    ? "Practice__h3--error"
+                    : "Practice__h3--sucess"
+                }
+              >
+                Additional notes: {playerScore.additionalNotes}
+                {playerScore.additionalNotes !== 0 ? "😔" : "🎉"}
+              </span>
+            </span>
+          ) : (
+            <span>Played {Math.ceil(playerResults.length / 2)} notes</span>
+          )}
         </h3>
       </div>
 
@@ -165,12 +198,21 @@ export const Practice = React.memo(function Practice() {
         >
           {showPianoLabels ? "Hide" : "Show"} Keys Names
         </div>
-        <div
-          className="ControlBar__button ControlBar__button--success"
-          onClick={() => checkResults()}
-        >
-          Check Results
-        </div>
+        {playerScore ? (
+          <div
+            className="ControlBar__button ControlBar__button--warning"
+            onClick={() => resetResult()}
+          >
+            Reset result
+          </div>
+        ) : (
+          <div
+            className="ControlBar__button ControlBar__button--success"
+            onClick={() => checkResults()}
+          >
+            Check Results
+          </div>
+        )}
         <div className="ControlBar__button" onClick={() => previewAudio()}>
           Play Audio 🔈
         </div>
