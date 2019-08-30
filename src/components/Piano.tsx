@@ -2,6 +2,7 @@ import { range, without } from "lodash";
 import React, { useState } from "react";
 import { midiToNoteName } from "../helpers/midiToNoteName";
 import { MidiResult, useMidi } from "../hooks/useMidi";
+import { useKeyboard } from "../hooks/useKeyboard";
 import { Instrument } from "../Instrument";
 import "./Piano.scss";
 
@@ -26,6 +27,15 @@ export const Piano: React.FC<Props> = ({ onNote, showLabels, instrument }) => {
     }
 
     onNote && onNote(result);
+  });
+
+  useKeyboard(result => {
+    if (result.action === "press") {
+      instrument.player.play(midiToNoteName(result.note));
+      setActiveKeys(keys => [...keys, result.note]);
+    } else {
+      setActiveKeys(keys => without(keys, result.note));
+    }
   });
 
   return (
