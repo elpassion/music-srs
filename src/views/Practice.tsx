@@ -2,7 +2,7 @@ import { Midi } from "@tonejs/midi";
 import { toByteArray } from "base64-js";
 import { findIndex } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
-import { Piano } from "../components/Piano";
+import { Piano, pianoKeys } from "../components/Piano";
 import { midiToNoteName } from "../helpers/midiToNoteName";
 import { AudioResult, MidiResult } from "../hooks/useMidi";
 import { Instrument } from "../Instrument";
@@ -100,11 +100,12 @@ const calculateCorrectness = (
 let animationId = 0;
 
 export const Practice = React.memo(function Practice({
-  midi,
-  onPracticeEnd
-}: {
-  midi: MidiEntity;
-  onPracticeEnd: (score: number) => void;
+
+}: // midi,
+// onPracticeEnd
+{
+  // midi: MidiEntity;
+  // onPracticeEnd: (score: number) => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -120,7 +121,7 @@ export const Practice = React.memo(function Practice({
     const result = calculateCorrectness(midiSong!, sequence);
     setPlayerResults([]);
     setPlayerScore(result);
-    setTimeout(() => onPracticeEnd(result.successRate), 1000);
+    // setTimeout(() => onPracticeEnd(result.successRate), 1000);
     console.log("compare", midiSong, sequence);
     console.log("compare result", result);
   };
@@ -166,13 +167,29 @@ export const Practice = React.memo(function Practice({
     setNotesOffset(0);
   };
 
+  // useEffect(() => {
+  //   setMidiSong(new Midi(toByteArray(midi.data)));
+  //   Instrument.create("acoustic_grand_piano")
+  //     .then(loadedInstrument => {
+  //       instrument.current = loadedInstrument;
+  //     })
+  //     .then(() => setLoading(false));
+  // }, []);
+
   useEffect(() => {
-    setMidiSong(new Midi(toByteArray(midi.data)));
-    Instrument.create("acoustic_grand_piano")
-      .then(loadedInstrument => {
+    Promise.all([
+      fetch("/assets/midi/C_minor_pentatonic_scale.mid").then(async res => {
+        if (res.ok) {
+          const arrayBuffer = await res.arrayBuffer();
+          setMidiSong(new Midi(arrayBuffer));
+        } else {
+          throw new Error(`could not load midi`);
+        }
+      }),
+      Instrument.create("acoustic_grand_piano").then(loadedInstrument => {
         instrument.current = loadedInstrument;
       })
-      .then(() => setLoading(false));
+    ]).then(() => setLoading(false));
   }, []);
 
   if (loading || !instrument.current) return <>Loading...</>;
@@ -180,7 +197,43 @@ export const Practice = React.memo(function Practice({
   return (
     <div className="Practice__container">
       <div className="Practice__screen">
-        <div className="Practice__track"></div>
+        <div
+          className={`Practice__track ${
+            isPlaying ? "Practice__track--playing" : ""
+          }`}
+        >
+          {pianoKeys.map(({ keyId, isBlack, isLargerWhite }) => {
+            const colorClass = isBlack ? "Practice__track-key--black" : "";
+            const sizeClass = isLargerWhite
+              ? "Practice__track-key--larger"
+              : "";
+
+            return (
+              <div
+                key={keyId}
+                className={`Practice__track-key ${colorClass} ${sizeClass}`}
+              >
+                {midiSong.tracks.map(track => {
+                  return track.notes.map(note => {
+                    if (note.midi !== keyId) return;
+                    return (
+                      <div
+                        key={note.name + note.time + note.duration}
+                        className="Practice__track-note"
+                        style={{
+                          height: note.duration * 100,
+                          bottom: note.time * 100 - notesOffset
+                        }}
+                      >
+                        {note.name}
+                      </div>
+                    );
+                  });
+                })}
+              </div>
+            );
+          })}
+        </div>
         <h3 className="Practice__h3">
           {playerScore ? (
             <span className="Practice__h3-wrapper">

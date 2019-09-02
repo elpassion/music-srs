@@ -78,6 +78,14 @@ function App() {
 
   return (
     <AuthContext.Provider value={{ idToken }}>
+      <div className="App__container">
+        <Practice
+        // key={currentlyPracticedMidiIndex}
+        // midi={midis[currentlyPracticedMidiIndex]}
+        // onPracticeEnd={startNextPractice}
+        />
+      </div>
+      {/*
       {idToken ? (
         currentlyPracticedMidiIndex !== null ? (
           <div className="App__container">
@@ -119,7 +127,7 @@ function App() {
           onFailure={console.error}
           cookiePolicy={"single_host_origin"}
         />
-      )}
+      )} */}
     </AuthContext.Provider>
   );
 }
