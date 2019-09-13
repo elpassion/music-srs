@@ -1,4 +1,5 @@
 import { range, without } from "lodash";
+/*
 import React, { useState } from "react";
 import { midiToNoteName } from "../helpers/midiToNoteName";
 import { useKeyboard } from "../hooks/useKeyboard";
@@ -68,3 +69,4 @@ export const Piano: React.FC<Props> = ({ onNote, showLabels, instrument }) => {
     </div>
   );
 };
+*/

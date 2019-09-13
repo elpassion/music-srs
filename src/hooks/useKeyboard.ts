@@ -22,12 +22,15 @@ const notes = {
   ";": 76
 };
 
-export const useKeyboard = (callback: (result: AudioResult) => void) => {
+export const useKeyboard = (
+  callback: (result: AudioResult | { action: "release-all" }) => void
+) => {
   const octaveRef = useRef(0);
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
   }, []);
 
   const keyToNote = (key: string) => {
@@ -64,5 +67,11 @@ export const useKeyboard = (callback: (result: AudioResult) => void) => {
         velocity: 0.8
       });
     }
+  };
+
+  const onBlur = () => {
+    callback({
+      action: "release-all"
+    });
   };
 };

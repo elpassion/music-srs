@@ -8,6 +8,8 @@ export interface AudioResult {
   action: "press" | "release";
 }
 
+/*
+
 export interface MidiResult extends AudioResult {
   name?: string;
   manufacturer?: string;
@@ -76,3 +78,4 @@ export const useMidi = (callback: (result: MidiResult) => void) => {
     navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
   }, []);
 };
+*/

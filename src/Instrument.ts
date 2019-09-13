@@ -1,4 +1,5 @@
 import Soundfont from "soundfont-player";
+/*
 
 export class Instrument {
   constructor(
@@ -12,3 +13,4 @@ export class Instrument {
     return new Instrument(player, ac);
   }
 }
+*/
