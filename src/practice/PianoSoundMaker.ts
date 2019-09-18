@@ -34,7 +34,7 @@ export async function loadSoundFont(
   if (buffersCache[name]) return buffersCache[name];
 
   await loadScript(
-    `http://gleitz.github.io/midi-js-soundfonts/FatBoy/${name}-mp3.js`
+    `https://gleitz.github.io/midi-js-soundfonts/FatBoy/${name}-mp3.js`
   );
   // @ts-ignore
   const data = window.MIDI.Soundfont[name];
