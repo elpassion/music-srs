@@ -8,8 +8,6 @@ export interface AudioResult {
   action: "press" | "release";
 }
 
-/*
-
 export interface MidiResult extends AudioResult {
   name?: string;
   manufacturer?: string;
@@ -47,10 +45,13 @@ export const useMidi = (callback: (result: MidiResult) => void) => {
     }
 
     function onMIDIMessage(message: any) {
+      const event = message.data[0] & 0xf0;
+
+      if (event === 240) return;
+
       const srcElement = message.srcElement;
       const data = message.data;
       const channel = data[0] & 0xf;
-      const event = data[0] & 0xf0;
       const note = data[1];
       const velocity = data[2];
       const timestamp = Date.now() / 1000; // in seconds
@@ -78,4 +79,3 @@ export const useMidi = (callback: (result: MidiResult) => void) => {
     navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
   }, []);
 };
-*/

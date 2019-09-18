@@ -55,3 +55,51 @@ export async function loadSoundFont(
   await Promise.all(promises);
   return buffersCache[name];
 }
+
+export class PianoSoundMaker {
+  ctx: AudioContext;
+  buffers: AudioBuffer;
+
+  constructor() {
+    this.ctx = new AudioContext();
+
+    this.loadSounds();
+  }
+
+  async loadSounds() {
+    this.buffers = await loadSoundFont(this.ctx);
+  }
+
+  playNote(midiId: number) {
+    const source = this.ctx.createBufferSource();
+    source.buffer = this.buffers[midiId];
+    let panX = 0;
+    let panY = panX + 90;
+    panY > 90 && (panY = 180 - panY);
+
+    const gainNode = this.ctx.createGain();
+    const filterNode = this.ctx.createBiquadFilter();
+    filterNode.type = "lowpass";
+    const panNode = this.ctx.createPanner();
+    panNode.panningModel = "equalpower";
+    panNode.setPosition(
+      Math.sin(panX * (Math.PI / 180)),
+      0,
+      Math.sin(panY * (Math.PI / 180))
+    );
+    // filterNode.frequency.value = mapCurve(velocity, 0, 127, 350, 13500, 2.72) // midicps[notePitch]
+    filterNode.Q.value = 0.4;
+    filterNode.connect(gainNode);
+    // gainNode.gain.value = Math.max(0, mapCurve(velocity, 0, 127, 0, 1, 1)) * this.masterVolume
+    gainNode.connect(panNode);
+    panNode.connect(this.ctx.destination);
+    source.connect(filterNode);
+
+    source.connect(this.ctx.destination);
+    source.start(0);
+  }
+
+  stopNote(midiId: number) {}
+
+  stopAll() {}
+}
